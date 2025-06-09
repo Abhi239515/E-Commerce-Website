@@ -2,7 +2,7 @@
 package com.ecom.service.impl;
 
 import java.io.File;
-
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -129,39 +129,52 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public UserDtls updateUserProfile(UserDtls user, MultipartFile img) {
 
-		UserDtls dbUser = userRepository.findById(user.getId()).get();
+	    UserDtls dbUser = userRepository.findById(user.getId()).orElse(null);
 
-		if (!img.isEmpty()) {
-			dbUser.setProfileImage(img.getOriginalFilename());
-		}
+	    if (dbUser != null) {
 
-		if (!ObjectUtils.isEmpty(dbUser)) {
+	        // Set the profile image name only if a new image is uploaded
+	        if (!img.isEmpty()) {
+	            dbUser.setProfileImage(img.getOriginalFilename());
+	        }
 
-			dbUser.setName(user.getName());
-			dbUser.setMobileNumber(user.getMobileNumber());
-			dbUser.setAddress(user.getAddress());
-			dbUser.setCity(user.getCity());
-			dbUser.setState(user.getState());
-			dbUser.setPincode(user.getPincode());
-			dbUser = userRepository.save(dbUser);
-		}
+	        // Update the remaining fields
+	        dbUser.setName(user.getName());
+	        dbUser.setMobileNumber(user.getMobileNumber());
+	        dbUser.setAddress(user.getAddress());
+	        dbUser.setCity(user.getCity());
+	        dbUser.setState(user.getState());
+	        dbUser.setPincode(user.getPincode());
 
-		try {
-			if (!img.isEmpty()) {
-				File saveFile = new ClassPathResource("static/img").getFile();
+	        // Save updated user details
+	        dbUser = userRepository.save(dbUser);
 
-				Path path = Paths.get(saveFile.getAbsolutePath() + File.separator + "profile_img" + File.separator
-						+ img.getOriginalFilename());
+	        // Save profile image to external directory
+	        try {
+	            if (!img.isEmpty()) {
+	                // Use external location to save image (NOT in classpath!)
+	                String uploadDir = "C:/ShoppingApp/uploads/category_img/";
+	                Path uploadPath = Paths.get(uploadDir);
 
-			System.out.println(path);
-				Files.copy(img.getInputStream(), path, StandardCopyOption.REPLACE_EXISTING);
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+	                // Create directories if not exist
+	                if (!Files.exists(uploadPath)) {
+	                    Files.createDirectories(uploadPath);
+	                }
 
-		return dbUser;
+	                // Save the file
+	                Path filePath = uploadPath.resolve(img.getOriginalFilename());
+	                Files.copy(img.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+
+	                System.out.println("Image saved to: " + filePath);
+	            }
+	        } catch (IOException e) {
+	            e.printStackTrace();
+	        }
+	    }
+
+	    return dbUser;
 	}
+
 
 	@Override
 	public UserDtls saveAdmin(UserDtls user) {

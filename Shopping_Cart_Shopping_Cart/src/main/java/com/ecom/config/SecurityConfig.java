@@ -45,22 +45,28 @@ public class SecurityConfig {
 		authenticationProvider.setPasswordEncoder(passwordEncoder());
 		return authenticationProvider;
 	}
-	
 	@Bean
-	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception
-	{
-		http.csrf(csrf->csrf.disable()).cors(cors->cors.disable())
-				.authorizeHttpRequests(req->req.requestMatchers("/user/**").hasRole("USER")
-				.requestMatchers("/admin/**").hasRole("ADMIN")
-				.requestMatchers("/**").permitAll())
-				.formLogin(form->form.loginPage("/signin")
-						.loginProcessingUrl("/login")
-						.failureHandler(authenticationFailureHandler)
-						.successHandler(authenticationSuccessHandler))
-				.logout(logout->logout.permitAll());
-		
-		return http.build();
+	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+	    http.csrf(csrf -> csrf.disable())
+	        .cors(cors -> cors.disable())
+	        .authorizeHttpRequests(req -> req
+	            .requestMatchers("/uploads/**").permitAll()          // Allow images without login
+	            .requestMatchers("/signin", "/css/**", "/js/**").permitAll()  // Allow login page and static resources
+	            .requestMatchers("/user/**").hasRole("USER")          // User role protected
+	            .requestMatchers("/admin/**").hasRole("ADMIN")        // Admin role protected
+	            .anyRequest().authenticated()                          // All others require login
+	        )
+	        .formLogin(form -> form
+	            .loginPage("/signin")
+	            .loginProcessingUrl("/login")
+	            .failureHandler(authenticationFailureHandler)
+	            .successHandler(authenticationSuccessHandler)
+	        )
+	        .logout(logout -> logout.permitAll());
+
+	    return http.build();
 	}
+
 
 	
 }

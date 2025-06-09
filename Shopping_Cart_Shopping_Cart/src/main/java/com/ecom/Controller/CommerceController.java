@@ -66,9 +66,25 @@ public class CommerceController {
 	private CommonUtil commonUtil;
 	
 	@RequestMapping("/index")
-	public String index() {
-		 return "index";
+	public String index(Model m) {
+
+		List<Category> allActiveCategory = categoryService.getAllActiveCategory().stream()
+			.sorted((c1, c2) -> Integer.compare(c2.getId(), c1.getId()))
+			.limit(6)
+			.toList();
+
+		List<Product> allActiveProducts = productService.getAllActiveProducts("").stream()
+			.sorted((p1, p2) -> Integer.compare(p2.getId(), p1.getId()))
+			.limit(8)
+			.toList();
+
+		m.addAttribute("category", allActiveCategory);
+		m.addAttribute("products", allActiveProducts);
+
+		return "index";
 	}
+
+	
 	@RequestMapping("/signin")
 	public String login() {
 		 return "login";

@@ -66,6 +66,9 @@ public class AdminController {
     
     @RequestMapping("/index")
     public String index(){
+    	
+    	
+    	
         return "admin/index";
     }
     
@@ -90,7 +93,7 @@ public class AdminController {
     
     @GetMapping("/category")
 	public String category(Model m, @RequestParam(name = "pageNo", defaultValue = "0") Integer pageNo,
-			@RequestParam(name = "pageSize", defaultValue = "2") Integer pageSize) {
+			@RequestParam(name = "pageSize", defaultValue = "5") Integer pageSize) {
 		Page<Category> page = categoryService.getAllCategorPagination(pageNo, pageSize);
 		List<Category> categorys = page.getContent();
 		m.addAttribute("categorys", categorys);
@@ -390,7 +393,6 @@ public class AdminController {
 	        } else { 
 	            session.setAttribute("errorMsg", "Something went wrong on the server");
 	        }
-
 		return "redirect:/admin/add-admin";
 	}
 	
